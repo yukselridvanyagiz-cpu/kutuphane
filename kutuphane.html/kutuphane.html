@@ -1,0 +1,1557 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Kütüphane</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23000'/><path d='M25 30 Q25 25 30 25 L70 25 Q75 25 75 30 L75 75 Q75 80 70 80 L30 80 Q25 80 25 75 Z' fill='none' stroke='%23FFD700' stroke-width='4'/><line x1='50' y1='25' x2='50' y2='80' stroke='%23FFD700' stroke-width='3'/></svg>">
+<script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { 
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
+    background: linear-gradient(135deg, #fafafa 0%, #f0f0f0 50%, #e8e8e8 100%);
+    background-attachment: fixed;
+    color: #333; 
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+  .container { max-width: 800px; margin: 20px auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  h1 { font-size: 28px; font-weight: 300; text-align: center; margin-bottom: 20px; color: #222; }
+  
+  .top-bar { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    padding: 15px 25px; 
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 215, 0, 0.15);
+    border-radius: 12px; 
+    margin-bottom: 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  }
+  .top-bar h1 { color: #ffffff; margin: 0; font-size: 22px; font-weight: 700; }
+  .user-profile { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+  .user-profile img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #FFD700; }
+  .user-profile span { color: #FFD700; font-weight: 700; font-size: 14px; }
+  .login-btn { 
+    background: #ff9900; 
+    color: #000; 
+    border: none; 
+    padding: 8px 16px; 
+    border-radius: 6px; 
+    cursor: pointer; 
+    font-weight: 700;
+    transition: all 0.2s;
+  }
+  .login-btn:hover { background: #FFE44D; transform: scale(1.05); }
+  
+  .tabs { display: flex; flex-wrap: wrap; margin-bottom: 25px; border-bottom: 1px solid #e0e0e0; }
+  .tab { 
+    flex: 1; 
+    min-width: 100px; 
+    padding: 14px 10px; 
+    text-align: center; 
+    cursor: pointer; 
+    background: none; 
+    border: none; 
+    font-size: 16px; 
+    font-weight: 700; 
+    color: #d69b43; 
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-bottom: 2px solid transparent;
+    position: relative;
+    overflow: hidden;
+  }
+  .tab::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background: #FFD700;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translateX(-50%);
+  }
+  .tab:hover::after { width: 70%; }
+  .tab:hover { transform: translateY(-2px); color: #FFE44D; }
+  .tab.active::after { width: 60%; }
+  .tab.active { color: #d69b43; border-bottom-color: transparent; font-weight: 900; background: transparent; }
+  
+  .panel { display: none; }
+  .panel.active { display: block; }
+  
+  input, button, select, textarea { width: 100%; padding: 12px 16px; margin: 6px 0; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; font-family: inherit; }
+  input:focus, textarea:focus { outline: none; border-color: #999; }
+  input[type="file"] { padding: 10px; background: #fafafa; }
+  textarea { min-height: 80px; resize: vertical; }
+  
+  button { background: #000; color: #dfddd4; border: none; cursor: pointer; font-weight: 700; padding: 12px 20px; transition: background 0.2s; }
+  button:hover { background: #333; }
+  
+  .btn-secondary { background: white; color: #333; border: 1px solid #ddd; }
+  .btn-secondary:hover { background: #f5f5f5; border-color: #999; }
+  .btn-danger { background: white; color: #d32f2f; border: 1px solid #ffcdd2; }
+  .btn-danger:hover { background: #ffebee; }
+  
+  label { display: block; margin: 12px 0 4px 0; font-size: 13px; font-weight: 500; color: #555; }
+  
+  .kitap-kart { background: white; padding: 20px; margin: 12px 0; border-radius: 6px; border: 1px solid #e0e0e0; }
+  .kitap-kart h3 { font-size: 18px; font-weight: 500; margin-bottom: 8px; color: #222; }
+  .kitap-kart p { font-size: 14px; color: #666; margin: 4px 0; }
+  .kitap-kart .pdf-badge { background: #f44336; color: white; padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 500; margin-left: 8px; }
+  .kitap-kart .owner-badge { background: #2196F3; color: white; padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 500; margin-left: 8px; }
+  
+  .button-group { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .button-group button { flex: 1; min-width: 100px; font-size: 13px; padding: 10px 16px; }
+  
+  #qr-reader { width: 100%; margin: 15px 0; border-radius: 6px; overflow: hidden; }
+  
+  .sonuc, .bos, .bilgi, .uyari { padding: 14px; border-radius: 6px; margin: 12px 0; font-size: 14px; text-align: center; }
+  .sonuc { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+  .bos { background: #fff3e0; color: #ef6c00; border: 1px solid #ffe0b2; }
+  .bilgi { background: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb; font-size: 13px; }
+  .uyari { background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; font-size: 13px; }
+  
+  .yildizlar { display: inline-flex; gap: 4px; font-size: 28px; cursor: pointer; user-select: none; }
+  .yildiz { color: #ddd; transition: color 0.15s; }
+  .yildiz.dolu { color: #FFD700; }
+  .yildiz:hover { color: #FFD700; }
+  
+  .yorum { background: #f9f9f9; padding: 12px; border-radius: 6px; margin: 8px 0; border-left: 3px solid #a8a6a1; }
+  .yorum-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .yorum-kullanici { font-weight: 700; font-size: 14px; }
+  .yorum-tarih { font-size: 12px; color: #999; }
+  .yorum-metin { font-size: 14px; color: #555; }
+  
+  .profil-header { display: flex; align-items: center; gap: 20px; padding: 20px; background: #f9f9f9; border-radius: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .profil-header img { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid #ffd900; }
+  .profil-bilgi h2 { font-size: 22px; margin-bottom: 5px; }
+  .profil-bilgi p { font-size: 14px; color: #666; margin: 2px 0; }
+  .profil-tanit { margin-top: 15px; padding: 15px; background: #f9f9f9; border-radius: 6px; font-size: 14px; color: #555; border-left: 3px solid #FFD700; }
+  
+  .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+  .modal-overlay.active { display: flex; }
+  .modal-content { background: white; padding: 30px; border-radius: 8px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; }
+  .modal-content h2 { margin-bottom: 20px; }
+  
+  .kullanici-kart { background: #f9f9f9; padding: 15px; margin: 10px 0; border-radius: 6px; border-left: 4px solid #FFD700; }
+  .kullanici-kart h4 { margin-bottom: 8px; }
+  .kullanici-kart p { font-size: 13px; color: #666; margin: 2px 0; }
+  
+  .info-text { font-size: 13px; color: #888; margin: 8px 0; }
+  h2 { font-size: 20px; font-weight: 500; margin-bottom: 20px; color: #222; }
+  h3 { font-size: 16px; font-weight: 500; margin: 20px 0 12px 0; color: #333; }
+  
+  a { color: #d69b43; text-decoration: none; font-weight: 700; }
+  a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="top-bar">
+    <h1> Kütüphane</h1>
+    <div id="user-area"></div>
+  </div>
+  
+  <div class="tabs">
+    <button class="tab active" onclick="panelGoster('ekle', this)">Ekle</button>
+    <button class="tab" onclick="panelGoster('liste', this)">Kitaplar</button>
+    <button class="tab" onclick="panelGoster('oku', this)">QR Oku</button>
+    <button class="tab" onclick="panelGoster('rastgele', this)">Rastgele</button>
+    <button class="tab" onclick="panelGoster('yedek', this)">Yedek</button>
+    <button class="tab" onclick="panelGoster('admin', this)">Admin</button>
+  </div>
+
+  <div id="ekle" class="panel active">
+    <h2>Yeni Kitap</h2>
+    <div id="ekle-giris-uyari" class="bilgi" style="display:none;">Kitap eklemek için giriş yapmalısın. Sağ üstten giriş yap.</div>
+    <div id="ekle-form">
+      <label>Kitap Adı *</label>
+      <input type="text" id="baslik" placeholder="Örn: Suç ve Ceza">
+      <label>Yazar *</label>
+      <input type="text" id="yazar" placeholder="Örn: Dostoyevski">
+      <label>Raf Numarası</label>
+      <input type="text" id="raf" placeholder="Örn: A-12">
+      <label>PDF Dosyası</label>
+      <input type="file" id="pdf" accept=".pdf,application/pdf">
+      <label>PDF Koruma Şifresi (opsiyonel)</label>
+      <input type="password" id="pdf-sifre" placeholder="Boş bırakırsan herkese açık olur">
+      <p class="info-text">Şifre koyarsan sadece sen düzenleyip silebilirsin</p>
+      <button onclick="kitapEkle()">Kaydet</button>
+    </div>
+    <div id="ekle-sonuc"></div>
+  </div>
+
+  <div id="liste" class="panel">
+    <h2>Tüm Kitaplar</h2>
+    <input type="text" id="arama" placeholder=" Kitap adı, yazar veya raf ara..." oninput="listeyiGuncelle()">
+    <div id="kitap-listesi"></div>
+  </div>
+
+  <div id="oku" class="panel">
+    <h2>QR Kod Oku</h2>
+    <div class="button-group">
+      <button onclick="kamerBaslat()">Kamerayı Başlat</button>
+      <button class="btn-secondary" onclick="kamerDurdur()">Durdur</button>
+    </div>
+    <div id="qr-reader"></div>
+        <h3> Veya QR Metnini Elle Gir</h3>
+    <p class="info-text">Telefonun kendi kamerasıyla QR'ı okut, çıkan metni (KITAP-...) buraya yapıştır</p>
+    <input type="text" id="qr-el" placeholder="Örn: KITAP-1794689290631">
+    <button onclick="qrElGir()">Kitabı Bul</button>
+    <div id="oku-sonuc"></div>
+  </div>
+
+  <div id="rastgele" class="panel">
+    <h2>Rastgele Kitap</h2>
+    <button onclick="rastgeleKitap()">Bir Kitap Seç</button>
+    <div id="rastgele-sonuc"></div>
+  </div>
+
+  <div id="yedek" class="panel">
+    <h2>Yedekleme</h2>
+    <div class="uyari"><b>Not:</b> Yedek dosyasına PDF'ler dahil değildir. PDF'leri ayrıca sakla.</div>
+    <div id="yedek-durum" class="bilgi">Yükleniyor...</div>
+    <h3>Dışa Aktar</h3>
+    <button onclick="disaAktar()">Yedek İndir</button>
+    <h3>İçe Aktar</h3>
+    <button class="btn-secondary" onclick="iceAktar()">Yedek Yükle</button>
+    <h3> Tam Yedek (Hesaplar + Kitaplar + Yorumlar)</h3>
+    <p class="info-text">Cihazlar arası taşıma için bunu kullan</p>
+    <button class="btn-secondary" onclick="tamYedekAl()">Tam Yedek İndir</button>
+    <button class="btn-secondary" onclick="tamYedekYukle()">Tam Yedek Yükle</button>
+    <div id="yedek-sonuc"></div>
+  </div>
+
+  <div id="admin" class="panel">
+    <h2> Admin Paneli</h2>
+    <div id="admin-giris">
+      <p class="info-text">Admin işlemleri için şifre girin</p>
+      <input type="password" id="admin-sifre" placeholder="Şifre">
+      <button onclick="adminGiris()">Giriş Yap</button>
+      <div id="admin-giris-sonuc"></div>
+    </div>
+    <div id="admin-icerik" style="display:none;">
+      <div class="bilgi"><b>Hoş geldin Admin!</b></div>
+      <h3> Tüm Kullanıcılar</h3>
+      <div id="admin-kullanici-listesi"></div>
+      <h3> Tüm Kitapları Yönet</h3>
+      <div id="admin-kitap-listesi"></div>
+      <h3> Admin Şifre Değiştir</h3>
+      <label>Mevcut Şifre</label>
+      <input type="password" id="eski-sifre">
+      <label>Yeni Şifre</label>
+      <input type="password" id="yeni-sifre">
+      <label>Yeni Şifre (Tekrar)</label>
+      <input type="password" id="yeni-sifre-tekrar">
+      <button onclick="sifreDegistir()">Şifreyi Güncelle</button>
+      <div id="sifre-sonuc"></div>
+      <h3> Çıkış</h3>
+      <button class="btn-danger" onclick="adminCikis()">Admin'den Çık</button>
+    </div>
+  </div>
+</div>
+
+<!-- GİRİŞ/KAYIT MODAL -->
+<div id="auth-modal" class="modal-overlay">
+  <div class="modal-content">
+    <div id="auth-giris">
+      <h2>Giriş Yap</h2>
+      <label>Kullanıcı Adı</label>
+      <input type="text" id="giris-kullanici">
+      <label>Şifre</label>
+      <input type="password" id="giris-sifre">
+      <button onclick="girisYap()">Giriş Yap</button>
+      <p class="info-text" style="text-align:center;margin-top:15px;">
+        Hesabın yok mu? <a href="#" onclick="authDegistir('kayit'); return false;">Kayıt Ol</a>
+      </p>
+      <button class="btn-secondary" onclick="modalKapat('auth-modal')" style="margin-top:10px;">Kapat</button>
+      <div id="giris-sonuc"></div>
+    </div>
+    <div id="auth-kayit" style="display:none;">
+      <h2>Hesap Oluştur</h2>
+      <label>Ad *</label>
+      <input type="text" id="kayit-ad">
+      <label>Soyad *</label>
+      <input type="text" id="kayit-soyad">
+      <label>Okul</label>
+      <input type="text" id="kayit-okul">
+      <label>Sınıf</label>
+      <input type="text" id="kayit-sinif">
+      <label>Okul No</label>
+      <input type="text" id="kayit-no">
+      <label>Kullanıcı Adı *</label>
+      <input type="text" id="kayit-kullanici">
+      <label>E-posta</label>
+      <input type="email" id="kayit-email">
+      <label>Şifre * (en az 4 karakter)</label>
+      <input type="password" id="kayit-sifre">
+      <label>Profil Fotoğrafı</label>
+      <input type="file" id="kayit-foto" accept="image/*">
+      <label>Kendini Tanıt</label>
+      <textarea id="kayit-tanit" placeholder="Kendin hakkında bir şeyler yaz..."></textarea>
+      <button onclick="kayitOl()">Kayıt Ol</button>
+      <p class="info-text" style="text-align:center;margin-top:15px;">
+        Zaten hesabın var mı? <a href="#" onclick="authDegistir('giris'); return false;">Giriş Yap</a>
+      </p>
+      <button class="btn-secondary" onclick="modalKapat('auth-modal')" style="margin-top:10px;">Kapat</button>
+      <div id="kayit-sonuc"></div>
+    </div>
+  </div>
+</div>
+
+<!-- DÜZENLE MODAL -->
+<div id="duzenle-modal" class="modal-overlay">
+  <div class="modal-content">
+    <h2>Kitabı Düzenle</h2>
+    <label>Kitap Adı</label>
+    <input type="text" id="duzenle-baslik">
+    <label>Yazar</label>
+    <input type="text" id="duzenle-yazar">
+    <label>Raf</label>
+    <input type="text" id="duzenle-raf">
+    <label>Yeni PDF (opsiyonel - boş bırakırsan eski kalır)</label>
+    <input type="file" id="duzenle-pdf" accept=".pdf,application/pdf">
+    <label>Yeni PDF Şifresi (boş bırakırsan eski şifre kalır)</label>
+    <input type="password" id="duzenle-sifre">
+    <div class="button-group">
+      <button onclick="kitapGuncelle()">Kaydet</button>
+      <button class="btn-secondary" onclick="modalKapat('duzenle-modal')">İptal</button>
+    </div>
+  </div>
+</div>
+
+<!-- KİTAP DETAY MODAL -->
+<div id="detay-modal" class="modal-overlay">
+  <div class="modal-content">
+    <div id="detay-icerik"></div>
+    <button class="btn-secondary" onclick="modalKapat('detay-modal')" style="margin-top:15px;">Kapat</button>
+  </div>
+</div>
+
+<!-- PROFİL MODAL -->
+<div id="profil-modal" class="modal-overlay">
+  <div class="modal-content">
+    <div id="profil-icerik"></div>
+    <button class="btn-secondary" onclick="modalKapat('profil-modal')" style="margin-top:15px;">Kapat</button>
+  </div>
+</div>
+
+<!-- PROFİL DÜZENLEME MODAL -->
+<div id="profil-duzenle-modal" class="modal-overlay">
+  <div class="modal-content">
+    <label>Kullanıcı Adı *</label>
+    <input type="text" id="duzenle-kullanici">
+    <h2>Profili Düzenle</h2>
+    <label>Ad *</label>
+    <input type="text" id="duzenle-ad">
+    <label>Soyad *</label>
+    <input type="text" id="duzenle-soyad">
+    <label>Okul</label>
+    <input type="text" id="duzenle-okul">
+    <label>Sınıf</label>
+    <input type="text" id="duzenle-sinif">
+    <label>Okul No</label>
+    <input type="text" id="duzenle-no">
+    <label>E-posta</label>
+    <input type="email" id="duzenle-email">
+    <label>Yeni Profil Fotoğrafı (opsiyonel)</label>
+    <input type="file" id="duzenle-foto" accept="image/*">
+    <label>Kendini Tanıt</label>
+    <textarea id="duzenle-tanit" placeholder="Kendin hakkında bir şeyler yaz..."></textarea>
+    <label>Yeni Şifre (boş bırakırsan eski şifre kalır)</label>
+    <input type="password" id="duzenle-sifre" placeholder="Değiştirmek istemiyorsan boş bırak">
+    <div class="button-group">
+      <button onclick="profilGuncelle()">Kaydet</button>
+      <button class="btn-secondary" onclick="modalKapat('profil-duzenle-modal')">İptal</button>
+    </div>
+    <div id="profil-duzenle-sonuc"></div>
+  </div>
+</div>
+
+<script>
+let db;
+let html5QrCode;
+let aktifKullanici = null;
+let duzenlenecekId = null;
+let adminModu = false;
+const VARSAYILAN_ADMIN_SIFRE = "admin2026";
+
+// VERİTABANI
+const istek = indexedDB.open("KutuphaneDB", 4);
+istek.onupgradeneeded = function(e) {
+  db = e.target.result;
+  if (!db.objectStoreNames.contains("kitaplar")) {
+    const s = db.createObjectStore("kitaplar", { keyPath: "id", autoIncrement: true });
+    s.createIndex("qr", "qr", { unique: true });
+  }
+  if (!db.objectStoreNames.contains("kullanicilar")) {
+    const s = db.createObjectStore("kullanicilar", { keyPath: "id", autoIncrement: true });
+    s.createIndex("kullaniciAdi", "kullaniciAdi", { unique: true });
+  }
+  if (!db.objectStoreNames.contains("yorumlar")) {
+    db.createObjectStore("yorumlar", { keyPath: "id", autoIncrement: true });
+  }
+  if (!db.objectStoreNames.contains("puanlar")) {
+    const s = db.createObjectStore("puanlar", { keyPath: "id", autoIncrement: true });
+    s.createIndex("kitapKullanici", ["kitapId", "kullaniciId"], { unique: true });
+  }
+};
+istek.onsuccess = function(e) {
+  db = e.target.result;
+  const oturum = localStorage.getItem("aktif_kullanici");
+  if (oturum) {
+    const tx = db.transaction("kullanicilar", "readonly");
+    const ist = tx.objectStore("kullanicilar").get(parseInt(oturum));
+    ist.onsuccess = function() {
+      if (ist.result) aktifKullanici = ist.result;
+      userAlaniGuncelle();
+      kontrolVeGeriYukle();
+    };
+    ist.onerror = function() {
+      userAlaniGuncelle();
+      kontrolVeGeriYukle();
+    };
+  } else {
+    userAlaniGuncelle();
+    kontrolVeGeriYukle();
+  }
+};
+istek.onerror = function() { alert('Veritabanı açılamadı!'); };
+
+// PROFİL FOTOĞRAFI FALLBACK
+const FALLBACK_FOTO = 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22><rect width=%22200%22 height=%22200%22 fill=%22%23333%22/><text x=%22100%22 y=%2295%22 text-anchor=%22middle%22 font-family=%22Arial%22 font-size=%2222%22 font-weight=%22bold%22 fill=%22white%22>Profil</text><text x=%22100%22 y=%22125%22 text-anchor=%22middle%22 font-family=%22Arial%22 font-size=%2222%22 font-weight=%22bold%22 fill=%22white%22>eklenmedi</text></svg>';
+
+// KULLANICI ALANI
+function userAlaniGuncelle() {
+  const alan = document.getElementById('user-area');
+  const ekleUyari = document.getElementById('ekle-giris-uyari');
+  const ekleForm = document.getElementById('ekle-form');
+  
+  if (aktifKullanici) {
+    const foto = aktifKullanici.foto || FALLBACK_FOTO;
+    alan.innerHTML = `
+      <div class="user-profile" onclick="profilGoster(${aktifKullanici.id})">
+        <img src="${foto}" alt="profil" onerror="this.src=\'' + FALLBACK_FOTO + '\'">
+        <span>${aktifKullanici.ad} ${aktifKullanici.soyad}</span>
+      </div>
+      <button class="login-btn" onclick="cikisYap()" style="margin-left:10px;">Çıkış</button>
+    `;
+    if (ekleUyari) ekleUyari.style.display = 'none';
+    if (ekleForm) ekleForm.style.display = 'block';
+  } else {
+    alan.innerHTML = `<button class="login-btn" onclick="modalAc('auth-modal')">Giriş Yap</button>`;
+    if (ekleUyari) ekleUyari.style.display = 'block';
+    if (ekleForm) ekleForm.style.display = 'none';
+  }
+}
+
+// AUTH
+function authDegistir(tip) {
+  if (tip === 'kayit') {
+    document.getElementById('auth-giris').style.display = 'none';
+    document.getElementById('auth-kayit').style.display = 'block';
+  } else {
+    document.getElementById('auth-giris').style.display = 'block';
+    document.getElementById('auth-kayit').style.display = 'none';
+  }
+}
+
+function girisYap() {
+  const kullanici = document.getElementById('giris-kullanici').value.trim().toLowerCase();
+  const sifre = document.getElementById('giris-sifre').value;
+  const sonuc = document.getElementById('giris-sonuc');
+  
+  if (!kullanici || !sifre) {
+    sonuc.innerHTML = '<div class="uyari">Kullanıcı adı ve şifre gerekli!</div>';
+    return;
+  }
+  
+  const tx = db.transaction("kullanicilar", "readonly");
+  const index = tx.objectStore("kullanicilar").index("kullaniciAdi");
+  const ist = index.get(kullanici);
+  ist.onsuccess = function() {
+    const k = ist.result;
+    if (k && k.sifre === sifre) {
+      aktifKullanici = k;
+      localStorage.setItem("aktif_kullanici", k.id);
+      modalKapat('auth-modal');
+      userAlaniGuncelle();
+      document.getElementById('giris-kullanici').value = '';
+      document.getElementById('giris-sifre').value = '';
+      sonuc.innerHTML = '';
+    } else {
+      sonuc.innerHTML = '<div class="uyari">Kullanıcı adı veya şifre yanlış!</div>';
+    }
+  };
+  ist.onerror = function() {
+    sonuc.innerHTML = '<div class="uyari">Kullanıcı bulunamadı!</div>';
+  };
+}
+
+function kayitOl() {
+  const ad = document.getElementById('kayit-ad').value.trim();
+  const soyad = document.getElementById('kayit-soyad').value.trim();
+  const okul = document.getElementById('kayit-okul').value.trim();
+  const sinif = document.getElementById('kayit-sinif').value.trim();
+  const no = document.getElementById('kayit-no').value.trim();
+  const kullanici = document.getElementById('kayit-kullanici').value.trim().toLowerCase();
+  const email = document.getElementById('kayit-email').value.trim();
+  const sifre = document.getElementById('kayit-sifre').value;
+  const tanit = document.getElementById('kayit-tanit').value.trim();
+  const fotoInput = document.getElementById('kayit-foto');
+  const sonuc = document.getElementById('kayit-sonuc');
+  
+  if (!ad || !soyad || !kullanici || !sifre) {
+    sonuc.innerHTML = '<div class="uyari">Ad, soyad, kullanıcı adı ve şifre zorunlu!</div>';
+    return;
+  }
+  if (sifre.length < 4) {
+    sonuc.innerHTML = '<div class="uyari">Şifre en az 4 karakter olmalı!</div>';
+    return;
+  }
+  
+  const kaydet = function(fotoBase64) {
+    const tx = db.transaction("kullanicilar", "readwrite");
+    tx.objectStore("kullanicilar").add({
+      ad, soyad, okul, sinif, no, kullaniciAdi: kullanici, email, sifre, tanit,
+      foto: fotoBase64,
+      kayitTarihi: new Date().toLocaleString('tr-TR')
+    });
+    tx.oncomplete = function() {
+      sonuc.innerHTML = '<div class="sonuc">✅ Kayıt başarılı! Giriş yapabilirsin.</div>';
+      setTimeout(() => {
+        authDegistir('giris');
+        document.getElementById('giris-kullanici').value = kullanici;
+        sonuc.innerHTML = '';
+      }, 1500);
+    };
+    tx.onerror = function() {
+      sonuc.innerHTML = '<div class="uyari">Bu kullanıcı adı zaten kullanılıyor!</div>';
+    };
+  };
+  
+  if (fotoInput.files.length > 0) {
+    const reader = new FileReader();
+    reader.onload = function(e) { kaydet(e.target.result); };
+    reader.onerror = function() { kaydet(null); };
+    reader.readAsDataURL(fotoInput.files[0]);
+  } else {
+    kaydet(null);
+  }
+}
+
+function cikisYap() {
+  aktifKullanici = null;
+  localStorage.removeItem("aktif_kullanici");
+  userAlaniGuncelle();
+  listeyiGuncelle();
+}
+
+// MODAL
+function modalAc(id) { document.getElementById(id).classList.add('active'); }
+function modalKapat(id) { document.getElementById(id).classList.remove('active'); }
+
+document.querySelectorAll('.modal-overlay').forEach(modal => {
+  modal.addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('active');
+  });
+});
+
+// PANEL
+function panelGoster(id, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+  if (id === 'liste') listeyiGuncelle();
+  if (id === 'yedek') yedekDurumunuGuncelle();
+  if (id === 'admin') adminCikis();
+}
+
+// KİTAP EKLE
+function kitapEkle() {
+  if (!aktifKullanici) {
+    document.getElementById('ekle-sonuc').innerHTML = '<div class="uyari">Önce giriş yapmalısın!</div>';
+    return;
+  }
+  const baslik = document.getElementById('baslik').value.trim();
+  const yazar = document.getElementById('yazar').value.trim();
+  const raf = document.getElementById('raf').value.trim();
+  const pdfInput = document.getElementById('pdf');
+  const pdfSifre = document.getElementById('pdf-sifre').value;
+  
+  if (!baslik || !yazar) { alert('Kitap adı ve yazar zorunlu!'); return; }
+
+  const qr = "KITAP-" + Date.now();
+  
+  if (pdfInput.files.length > 0) {
+    const file = pdfInput.files[0];
+    if (file.type !== 'application/pdf') { alert('Sadece PDF dosyası kabul edilir!'); return; }
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const pdfBlob = new Blob([e.target.result], { type: 'application/pdf' });
+      kaydet(baslik, yazar, raf, qr, pdfBlob, pdfSifre);
+    };
+    reader.onerror = function() { alert('PDF okunamadı!'); };
+    reader.readAsArrayBuffer(file);
+  } else {
+    kaydet(baslik, yazar, raf, qr, null, pdfSifre);
+  }
+}
+
+function kaydet(baslik, yazar, raf, qr, pdfBlob, pdfSifre) {
+  const tx = db.transaction("kitaplar", "readwrite");
+  tx.objectStore("kitaplar").add({ 
+    baslik, yazar, raf, qr, pdf: pdfBlob,
+    pdfSifre: pdfSifre || null,
+    sahipId: aktifKullanici.id,
+    sahipAd: aktifKullanici.ad + ' ' + aktifKullanici.soyad,
+    yuklenmeTarihi: new Date().toLocaleString('tr-TR')
+  });
+  tx.oncomplete = function() {
+    document.getElementById('ekle-sonuc').innerHTML = '<div class="sonuc">Kitap eklendi!</div>';
+    document.getElementById('baslik').value = '';
+    document.getElementById('yazar').value = '';
+    document.getElementById('raf').value = '';
+    document.getElementById('pdf').value = '';
+    document.getElementById('pdf-sifre').value = '';
+    setTimeout(() => document.getElementById('ekle-sonuc').innerHTML = '', 2000);
+    otomatikYedekAl();
+  };
+  tx.onerror = function() { alert('Kitap eklenirken hata oluştu!'); };
+}
+
+// LİSTE
+function listeyiGuncelle() {
+  if (!db) return;
+  const tx = db.transaction("kitaplar", "readonly");
+  const store = tx.objectStore("kitaplar");
+  const istek = store.getAll();
+  istek.onsuccess = function() {
+    const kitaplar = istek.result;
+    const arama = document.getElementById('arama') ? document.getElementById('arama').value.toLowerCase() : '';
+    const filtrelenmis = arama ? kitaplar.filter(k => 
+      k.baslik.toLowerCase().includes(arama) || 
+      k.yazar.toLowerCase().includes(arama) || 
+      (k.raf || '').toLowerCase().includes(arama)
+    ) : kitaplar;
+    const alan = document.getElementById('kitap-listesi');
+    if (!alan) return;
+    if (filtrelenmis.length === 0) {
+      alan.innerHTML = arama ? '<div class="bos">Aramanla eşleşen kitap bulunamadı</div>' : '<div class="bos">Henüz kitap yok</div>';
+      return;
+    }
+    alan.innerHTML = filtrelenmis.map(k => {
+      const isOwner = aktifKullanici && k.sahipId === aktifKullanici.id;
+      return `
+        <div class="kitap-kart">
+          <h3>${k.baslik} ${k.pdf ? '<span class="pdf-badge">PDF</span>' : ''} ${isOwner ? '<span class="owner-badge">Senin</span>' : ''}</h3>
+          <p><b>Yazar:</b> ${k.yazar}</p>
+          <p><b>Raf:</b> ${k.raf || '-'}</p>
+          <p><b>Yükleyen:</b> ${k.sahipAd || '-'}</p>
+          <p><b>Yükleme:</b> ${k.yuklenmeTarihi || '-'}</p>
+          ${k.pdf ? `<p><b>Boyut:</b> ${(k.pdf.size / 1024 / 1024).toFixed(1)} MB</p>` : ''}
+          <div id="qr-${k.id}" style="text-align:center;margin:16px 0;"></div>
+          <div class="button-group">
+            <button class="btn-secondary" onclick="detayGoster(${k.id})">Detay / Yorum / Puan</button>
+            ${isOwner || adminModu ? `<button class="btn-secondary" onclick="kitapDuzenle(${k.id})">Düzenle</button>` : ''}
+            ${isOwner || adminModu ? `<button class="btn-danger" onclick="kitapSil(${k.id})">Sil</button>` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+    filtrelenmis.forEach(k => {
+      const el = document.getElementById('qr-' + k.id);
+      if (el) {
+        const qr = qrcode(0, 'M');
+        qr.addData(k.qr);
+        qr.make();
+        el.innerHTML = qr.createImgTag(4, 8);
+      }
+    });
+  };
+}
+
+// DETAY (Yorum + Puan)
+function detayGoster(id) {
+  const tx = db.transaction(["kitaplar", "yorumlar", "puanlar"], "readonly");
+  const kitapIst = tx.objectStore("kitaplar").get(id);
+  kitapIst.onsuccess = function() {
+    const k = kitapIst.result;
+    if (!k) return;
+    
+    const yorumIst = tx.objectStore("yorumlar").getAll();
+    const puanIst = tx.objectStore("puanlar").getAll();
+    
+    yorumIst.onsuccess = function() {
+      const yorumlar = yorumIst.result.filter(y => y.kitapId === id);
+      puanIst.onsuccess = function() {
+        const puanlar = puanIst.result.filter(p => p.kitapId === id);
+        const ortalama = puanlar.length > 0 ? puanlar.reduce((a,b) => a + b.puan, 0) / puanlar.length : 0;
+        const kullaniciPuani = aktifKullanici ? puanlar.find(p => p.kullaniciId === aktifKullanici.id) : null;
+        const mevcutPuan = kullaniciPuani ? kullaniciPuani.puan : 0;
+        
+        let html = `
+          <h2>${k.baslik} ${k.pdf ? '<span class="pdf-badge">PDF</span>' : ''}</h2>
+          <p><b>Yazar:</b> ${k.yazar}</p>
+          <p><b>Raf:</b> ${k.raf || '-'}</p>
+          <p><b>Yükleyen:</b> ${k.sahipAd || '-'}</p>
+          <p><b>Yükleme:</b> ${k.yuklenmeTarihi || '-'}</p>
+          <p><b>Ortalama Puan:</b> ${ortalama > 0 ? '<span style="color:#FFD700;font-size:20px;">' + '★'.repeat(Math.round(ortalama)) + '</span><span style="color:#ddd;font-size:20px;">' + '☆'.repeat(5-Math.round(ortalama)) + '</span> (' + ortalama.toFixed(1) + '/5 - ' + puanlar.length + ' oy)' : 'Henüz puan verilmedi'}</p>
+        `;
+        
+        if (k.pdf) {
+          html += `<div class="button-group" style="margin:15px 0;">
+            <button onclick="pdfAc('${k.qr}')">PDF Aç</button>
+            <button class="btn-secondary" onclick="pdfIndir('${k.qr}')">PDF İndir</button>
+          </div>`;
+        }
+        
+        html += `<h3> Puan Ver</h3>`;
+        if (aktifKullanici) {
+          html += `<div class="yildizlar" id="yildizlar">`;
+          for (let i = 1; i <= 5; i++) {
+            html += `<span class="yildiz ${i <= mevcutPuan ? 'dolu' : ''}" onclick="puanVer(${id}, ${i})" onmouseover="yildizHover(${i})" onmouseout="yildizReset(${mevcutPuan})">★</span>`;
+          }
+          html += `</div>`;
+          if (mevcutPuan > 0) {
+            html += `<p class="info-text">Verdiğin puan: ${mevcutPuan}/5 <button class="btn-danger" onclick="puanSil(${id})" style="margin-left:10px;font-size:12px;padding:4px 10px;">Puanı Kaldır</button></p>`;
+          } else {
+            html += `<p class="info-text">Yıldızlara tıklayarak puan ver</p>`;
+          }
+        } else {
+          html += `<p class="info-text">Puan vermek için giriş yap</p>`;
+        }
+        
+        html += `<h3> Yorumlar (${yorumlar.length})</h3>`;
+        if (yorumlar.length === 0) {
+          html += `<p class="info-text">Henüz yorum yok</p>`;
+        } else {
+          yorumlar.forEach(y => {
+            const kendiYorumu = aktifKullanici && y.kullaniciId === aktifKullanici.id;
+            html += `
+              <div class="yorum">
+                <div class="yorum-header">
+                  <span class="yorum-kullanici">${y.kullaniciAd}</span>
+                  <span class="yorum-tarih">${y.tarih}</span>
+                </div>
+                <div class="yorum-metin">${y.metin}</div>
+                ${kendiYorumu ? `<button class="btn-danger" onclick="yorumSil(${y.id}, ${id})" style="margin-top:8px;font-size:12px;padding:6px 12px;">🗑 Yorumu Sil</button>` : ''}
+              </div>
+            `;
+          });
+        }
+        
+        if (aktifKullanici) {
+          html += `
+            <h3>Yorum Yaz</h3>
+            <textarea id="yorum-metin" placeholder="Yorumunu yaz..."></textarea>
+            <button onclick="yorumEkle(${id})">Yorumu Gönder</button>
+          `;
+        } else {
+          html += `<p class="info-text">Yorum yazmak için giriş yap</p>`;
+        }
+        
+        document.getElementById('detay-icerik').innerHTML = html;
+        modalAc('detay-modal');
+      };
+    };
+  };
+}
+
+function yildizHover(n) {
+  const yildizlar = document.querySelectorAll('#yildizlar .yildiz');
+  yildizlar.forEach((y, i) => { y.classList.toggle('dolu', i < n); });
+}
+
+function yildizReset(mevcut) {
+  const yildizlar = document.querySelectorAll('#yildizlar .yildiz');
+  yildizlar.forEach((y, i) => { y.classList.toggle('dolu', i < mevcut); });
+}
+
+function puanVer(kitapId, puan) {
+  if (!aktifKullanici) { alert('Puan vermek için giriş yap!'); return; }
+  const tx = db.transaction("puanlar", "readwrite");
+  const index = tx.objectStore("puanlar").index("kitapKullanici");
+  const ist = index.get([kitapId, aktifKullanici.id]);
+  ist.onsuccess = function() {
+    if (ist.result) {
+      ist.result.puan = puan;
+      tx.objectStore("puanlar").put(ist.result);
+    } else {
+      tx.objectStore("puanlar").add({
+        kitapId, kullaniciId: aktifKullanici.id,
+        kullaniciAd: aktifKullanici.ad + ' ' + aktifKullanici.soyad,
+        puan, tarih: new Date().toLocaleString('tr-TR')
+      });
+    }
+    tx.oncomplete = function() { detayGoster(kitapId); };
+  };
+}
+
+function puanSil(kitapId) {
+  if (!aktifKullanici) return;
+  if (!confirm('Puanını kaldırmak istediğine emin misin?')) return;
+  const tx = db.transaction("puanlar", "readwrite");
+  const index = tx.objectStore("puanlar").index("kitapKullanici");
+  const ist = index.get([kitapId, aktifKullanici.id]);
+  ist.onsuccess = function() {
+    if (ist.result) tx.objectStore("puanlar").delete(ist.result.id);
+    tx.oncomplete = function() { detayGoster(kitapId); listeyiGuncelle(); };
+  };
+}
+
+function yorumEkle(kitapId) {
+  if (!aktifKullanici) { alert('Yorum yazmak için giriş yap!'); return; }
+  const metin = document.getElementById('yorum-metin').value.trim();
+  if (!metin) { alert('Yorum boş olamaz!'); return; }
+  const tx = db.transaction("yorumlar", "readwrite");
+  tx.objectStore("yorumlar").add({
+    kitapId, kullaniciId: aktifKullanici.id,
+    kullaniciAd: aktifKullanici.ad + ' ' + aktifKullanici.soyad,
+    metin, tarih: new Date().toLocaleString('tr-TR')
+  });
+  tx.oncomplete = function() { detayGoster(kitapId); };
+}
+
+function yorumSil(yorumId, kitapId) {
+  if (!confirm('Bu yorumu silmek istediğine emin misin?')) return;
+  const tx = db.transaction("yorumlar", "readwrite");
+  tx.objectStore("yorumlar").delete(yorumId);
+  tx.oncomplete = function() { detayGoster(kitapId); };
+}
+
+// PROFİL
+function profilGoster(id) {
+  const tx = db.transaction(["kullanicilar", "kitaplar", "puanlar", "yorumlar"], "readonly");
+  const kIst = tx.objectStore("kullanicilar").get(id);
+  const kitapIst = tx.objectStore("kitaplar").getAll();
+  const puanIst = tx.objectStore("puanlar").getAll();
+  const yorumIst = tx.objectStore("yorumlar").getAll();
+  
+  kIst.onsuccess = function() {
+    const k = kIst.result;
+    if (!k) return;
+    const foto = k.foto || FALLBACK_FOTO;
+    
+    kitapIst.onsuccess = function() {
+      const kitaplar = kitapIst.result.filter(kit => kit.sahipId === id);
+      
+      puanIst.onsuccess = function() {
+        const kullanicininPuanlari = puanIst.result.filter(p => p.kullaniciId === id);
+        
+        yorumIst.onsuccess = function() {
+          const kullanicininYorumlari = yorumIst.result.filter(y => y.kullaniciId === id);
+          const tumKitaplar = kitapIst.result;
+          
+          let html = `
+            <div class="profil-header">
+              <img src="${foto}" alt="profil" onerror="this.src=\'' + FALLBACK_FOTO + '\'">
+              <div class="profil-bilgi">
+                <h2>${k.ad} ${k.soyad}</h2>
+                <p><b>Kullanıcı Adı:</b> ${k.kullaniciAdi}</p>
+                ${k.email ? `<p><b>E-posta:</b> ${k.email}</p>` : ''}
+                ${k.okul ? `<p><b>Okul:</b> ${k.okul}</p>` : ''}
+                ${k.sinif ? `<p><b>Sınıf:</b> ${k.sinif}</p>` : ''}
+                ${k.no ? `<p><b>Okul No:</b> ${k.no}</p>` : ''}
+                <p><b>Kayıt:</b> ${k.kayitTarihi}</p>
+              </div>
+            </div>
+          `;
+          
+          if (k.tanit) {
+            html += `<div class="profil-tanit"><b>Hakkında:</b><br>${k.tanit}</div>`;
+          }
+          
+          // Kendi profiliyse düzenle butonu
+          if (aktifKullanici && k.id === aktifKullanici.id) {
+            html += `<div class="button-group" style="margin-top:15px;">
+              <button onclick="profilDuzenleAc(); modalKapat('profil-modal');"> Profili Düzenle</button>
+            </div>`;
+          }
+          
+          // Verdiği puanlar
+          if (kullanicininPuanlari.length > 0) {
+            html += `<h3> Verdiği Puanlar (${kullanicininPuanlari.length})</h3>`;
+            kullanicininPuanlari.forEach(p => {
+              const kitap = tumKitaplar.find(kit => kit.id === p.kitapId);
+              const kitapAdi = kitap ? kitap.baslik : 'Silinmiş kitap';
+              html += `
+                <div class="yorum">
+                  <div class="yorum-header">
+                    <span class="yorum-kullanici">${kitapAdi}</span>
+                    <span class="yorum-tarih">${p.tarih}</span>
+                  </div>
+                  <div class="yorum-metin" style="color:#FFD700;font-size:18px;">${'★'.repeat(p.puan)}${'☆'.repeat(5-p.puan)} (${p.puan}/5)</div>
+                </div>
+              `;
+            });
+          }
+          
+          // Yaptığı yorumlar
+          if (kullanicininYorumlari.length > 0) {
+            html += `<h3> Yaptığı Yorumlar (${kullanicininYorumlari.length})</h3>`;
+            kullanicininYorumlari.forEach(y => {
+              const kitap = tumKitaplar.find(kit => kit.id === y.kitapId);
+              const kitapAdi = kitap ? kitap.baslik : 'Silinmiş kitap';
+              html += `
+                <div class="yorum">
+                  <div class="yorum-header">
+                    <span class="yorum-kullanici">${kitapAdi}</span>
+                    <span class="yorum-tarih">${y.tarih}</span>
+                  </div>
+                  <div class="yorum-metin">${y.metin}</div>
+                </div>
+              `;
+            });
+          }
+          
+          // Yüklediği kitaplar
+          kitaplar.forEach(kit => {
+            const tiklanabilir = kit.pdf ? `onclick="pdfAc('${kit.qr}'); return false;" style="cursor:pointer;"` : '';
+            html += `
+              <div class="kitap-kart" ${tiklanabilir}>
+                <h3>${kit.baslik} ${kit.pdf ? '<span class="pdf-badge">PDF</span>' : ''} ${kit.pdf ? '<span style="font-size:11px;color:#888;">(PDF açmak için tıkla)</span>' : ''}</h3>
+                <p><b>Yazar:</b> ${kit.yazar}</p>
+                <p><b>Raf:</b> ${kit.raf || '-'}</p>
+                <p><b>Yükleme:</b> ${kit.yuklenmeTarihi}</p>
+              </div>
+           `;
+ });
+          
+          document.getElementById('profil-icerik').innerHTML = html;
+          modalAc('profil-modal');
+        };
+      };
+    };
+  };
+}
+
+// PROFİL DÜZENLEME
+function profilDuzenleAc() {
+  if (!aktifKullanici) return;
+  document.getElementById('duzenle-kullanici').value = aktifKullanici.kullaniciAdi;
+  document.getElementById('duzenle-ad').value = aktifKullanici.ad;
+  document.getElementById('duzenle-soyad').value = aktifKullanici.soyad;
+  document.getElementById('duzenle-okul').value = aktifKullanici.okul || '';
+  document.getElementById('duzenle-sinif').value = aktifKullanici.sinif || '';
+  document.getElementById('duzenle-no').value = aktifKullanici.no || '';
+  document.getElementById('duzenle-email').value = aktifKullanici.email || '';
+  document.getElementById('duzenle-tanit').value = aktifKullanici.tanit || '';
+  document.getElementById('duzenle-foto').value = '';
+  document.getElementById('duzenle-sifre').value = '';
+  document.getElementById('profil-duzenle-sonuc').innerHTML = '';
+  modalAc('profil-duzenle-modal');
+}
+
+function profilGuncelle() {
+  if (!aktifKullanici) return;
+  const kullanici = document.getElementById('duzenle-kullanici').value.trim().toLowerCase();
+  const ad = document.getElementById('duzenle-ad').value.trim();
+  const soyad = document.getElementById('duzenle-soyad').value.trim();
+  const okul = document.getElementById('duzenle-okul').value.trim();
+  const sinif = document.getElementById('duzenle-sinif').value.trim();
+  const no = document.getElementById('duzenle-no').value.trim();
+  const email = document.getElementById('duzenle-email').value.trim();
+  const tanit = document.getElementById('duzenle-tanit').value.trim();
+  const sifre = document.getElementById('duzenle-sifre').value;
+  const fotoInput = document.getElementById('duzenle-foto');
+  const sonuc = document.getElementById('profil-duzenle-sonuc');
+  
+  if (!ad || !soyad || !kullanici) {
+  sonuc.innerHTML = '<div class="uyari">Ad, soyad ve kullanıcı adı zorunlu!</div>';
+  return;
+}
+if (kullanici !== aktifKullanici.kullaniciAdi) {
+  // Kullanıcı adı değişmiş, başka birinde var mı kontrol et
+  const txCheck = db.transaction("kullanicilar", "readonly");
+  const indexCheck = txCheck.objectStore("kullanicilar").index("kullaniciAdi");
+  const istCheck = indexCheck.get(kullanici);
+  istCheck.onsuccess = function() {
+    if (istCheck.result && istCheck.result.id !== aktifKullanici.id) {
+      sonuc.innerHTML = '<div class="uyari">Bu kullanıcı adı zaten kullanılıyor!</div>';
+      return;
+    }
+    profiliKaydet(ad, soyad, okul, sinif, no, email, tanit, sifre, fotoInput, kullanici, sonuc);
+  };
+} else {
+  profiliKaydet(ad, soyad, okul, sinif, no, email, tanit, sifre, fotoInput, kullanici, sonuc);
+}
+  
+ function profiliKaydet(ad, soyad, okul, sinif, no, email, tanit, sifre, fotoInput, kullanici, sonuc) {
+  const guncelle = function(fotoBase64) {
+    const tx = db.transaction("kullanicilar", "readwrite");
+    const ist = tx.objectStore("kullanicilar").get(aktifKullanici.id);
+    ist.onsuccess = function() {
+      const k = ist.result;
+      k.ad = ad; k.soyad = soyad; k.okul = okul; k.sinif = sinif;
+      k.no = no; k.email = email; k.tanit = tanit;
+      k.kullaniciAdi = kullanici;
+      if (fotoBase64) k.foto = fotoBase64;
+      if (sifre && sifre.length >= 4) k.sifre = sifre;
+      tx.objectStore("kullanicilar").put(k);
+    };
+    tx.oncomplete = function() {
+      aktifKullanici.ad = ad; aktifKullanici.soyad = soyad;
+      aktifKullanici.okul = okul; aktifKullanici.sinif = sinif;
+      aktifKullanici.no = no; aktifKullanici.email = email;
+      aktifKullanici.tanit = tanit;
+      aktifKullanici.kullaniciAdi = kullanici;
+      if (fotoBase64) aktifKullanici.foto = fotoBase64;
+      if (sifre && sifre.length >= 4) aktifKullanici.sifre = sifre;
+      modalKapat('profil-duzenle-modal');
+      userAlaniGuncelle();
+      sonuc.innerHTML = '<div class="sonuc">Profil güncellendi!</div>';
+      setTimeout(() => sonuc.innerHTML = '', 2000);
+    };
+    tx.onerror = function() {
+      sonuc.innerHTML = '<div class="uyari">Bu kullanıcı adı zaten kullanılıyor!</div>';
+    };
+  };
+  
+  if (fotoInput.files.length > 0) {
+    const reader = new FileReader();
+    reader.onload = function(e) { guncelle(e.target.result); };
+    reader.onerror = function() { guncelle(null); };
+    reader.readAsDataURL(fotoInput.files[0]);
+  } else {
+    guncelle(null);
+  }
+}
+  
+  if (fotoInput.files.length > 0) {
+    const reader = new FileReader();
+    reader.onload = function(e) { guncelle(e.target.result); };
+    reader.onerror = function() { guncelle(null); };
+    reader.readAsDataURL(fotoInput.files[0]);
+  } else {
+    guncelle(null);
+  }
+}
+
+// DÜZENLE
+function kitapDuzenle(id) {
+  if (!aktifKullanici && !adminModu) { alert('Önce giriş yap!'); return; }
+  const tx = db.transaction("kitaplar", "readonly");
+  const ist = tx.objectStore("kitaplar").get(id);
+  ist.onsuccess = function() {
+    const k = ist.result;
+    if (!k) return;
+    if (!adminModu && k.sahipId !== aktifKullanici.id) { alert('Sadece kendi kitabını düzenleyebilirsin!'); return; }
+    if (k.pdfSifre && !adminModu) {
+      const sifre = prompt('Bu kitap şifreli. Düzenleme şifresini gir:');
+      if (sifre !== k.pdfSifre) { alert('Yanlış şifre!'); return; }
+    }
+    duzenlenecekId = id;
+    document.getElementById('duzenle-baslik').value = k.baslik;
+    document.getElementById('duzenle-yazar').value = k.yazar;
+    document.getElementById('duzenle-raf').value = k.raf || '';
+    document.getElementById('duzenle-pdf').value = '';
+    document.getElementById('duzenle-sifre').value = '';
+    modalAc('duzenle-modal');
+  };
+}
+
+function kitapGuncelle() {
+  const baslik = document.getElementById('duzenle-baslik').value.trim();
+  const yazar = document.getElementById('duzenle-yazar').value.trim();
+  const raf = document.getElementById('duzenle-raf').value.trim();
+  const pdfInput = document.getElementById('duzenle-pdf');
+  const sifreInput = document.getElementById('duzenle-sifre').value;
+  
+  if (!baslik || !yazar) { alert('Kitap adı ve yazar zorunlu!'); return; }
+  
+  const id = duzenlenecekId;
+  const guncelle = function(pdfBlob, yeniSifre) {
+    const tx = db.transaction("kitaplar", "readwrite");
+    const ist = tx.objectStore("kitaplar").get(id);
+    ist.onsuccess = function() {
+      const k = ist.result;
+      k.baslik = baslik; k.yazar = yazar; k.raf = raf;
+      if (pdfBlob) k.pdf = pdfBlob;
+      if (yeniSifre !== undefined && yeniSifre !== '') k.pdfSifre = yeniSifre;
+      tx.objectStore("kitaplar").put(k);
+    };
+    tx.oncomplete = function() {
+      modalKapat('duzenle-modal');
+      listeyiGuncelle();
+      otomatikYedekAl();
+    };
+  };
+  
+  if (pdfInput.files.length > 0) {
+    const file = pdfInput.files[0];
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const pdfBlob = new Blob([e.target.result], { type: 'application/pdf' });
+      guncelle(pdfBlob, sifreInput);
+    };
+    reader.readAsArrayBuffer(file);
+  } else {
+    guncelle(null, sifreInput);
+  }
+}
+
+function kitapSil(id) {
+  if (!aktifKullanici && !adminModu) { alert('Önce giriş yap!'); return; }
+  const tx = db.transaction("kitaplar", "readonly");
+  const ist = tx.objectStore("kitaplar").get(id);
+  ist.onsuccess = function() {
+    const k = ist.result;
+    if (!adminModu && k.sahipId !== aktifKullanici.id) { alert('Sadece kendi kitabını silebilirsin!'); return; }
+    if (k.pdfSifre && !adminModu) {
+      const sifre = prompt('Bu kitap şifreli. Silme şifresini gir:');
+      if (sifre !== k.pdfSifre) { alert('Yanlış şifre!'); return; }
+    }
+    if (!confirm('Bu kitabı silmek istediğine emin misin?')) return;
+    const tx2 = db.transaction("kitaplar", "readwrite");
+    tx2.objectStore("kitaplar").delete(id);
+    tx2.oncomplete = function() { listeyiGuncelle(); otomatikYedekAl(); };
+  };
+}
+
+// PDF
+function pdfAc(qr) {
+  const tx = db.transaction("kitaplar", "readonly");
+  const index = tx.objectStore("kitaplar").index("qr");
+  const ist = index.get(qr);
+  ist.onsuccess = function() {
+    const k = ist.result;
+    if (k && k.pdf) {
+      if (k.pdfSifre && (!aktifKullanici || (k.sahipId !== aktifKullanici.id && !adminModu))) {
+        const sifre = prompt('Bu PDF şifreli. Şifreyi gir:');
+        if (sifre !== k.pdfSifre) { alert('Yanlış şifre! PDF açılamaz.'); return; }
+      }
+      const url = URL.createObjectURL(k.pdf);
+      window.open(url, '_blank');
+    }
+  };
+}
+
+function pdfIndir(qr) {
+  const tx = db.transaction("kitaplar", "readonly");
+  const index = tx.objectStore("kitaplar").index("qr");
+  const ist = index.get(qr);
+  ist.onsuccess = function() {
+    const k = ist.result;
+    if (k && k.pdf) {
+      if (k.pdfSifre && (!aktifKullanici || (k.sahipId !== aktifKullanici.id && !adminModu))) {
+        const sifre = prompt('Bu PDF şifreli. Şifreyi gir:');
+        if (sifre !== k.pdfSifre) { alert('Yanlış şifre! PDF indirilemez.'); return; }
+      }
+      const url = URL.createObjectURL(k.pdf);
+      const a = document.createElement('a');
+      a.href = url; a.download = k.baslik + '.pdf';
+      document.body.appendChild(a); a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+  };
+}
+
+// QR OKU
+function kamerBaslat() {
+  if (html5QrCode) return;
+  html5QrCode = new Html5Qrcode("qr-reader");
+  html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, function(decoded) {
+    kitapBul(decoded);
+    kamerDurdur();
+  }).catch(err => alert('Kamera hatası: ' + err));
+}
+
+function kamerDurdur() {
+  if (html5QrCode) {
+    html5QrCode.stop().then(() => {
+      html5QrCode.clear();
+      html5QrCode = null;
+    }).catch(() => {});
+  }
+}
+function qrElGir() {
+  const metin = document.getElementById('qr-el').value.trim();
+  if (!metin) { alert('QR metnini yapıştır!'); return; }
+  kitapBul(metin);
+}
+function kitapBul(qr) {
+  const tx = db.transaction("kitaplar", "readonly");
+  const index = tx.objectStore("kitaplar").index("qr");
+  const ist = index.get(qr);
+  ist.onsuccess = function() {
+    const k = ist.result;
+    const alan = document.getElementById('oku-sonuc');
+    if (k) {
+      alan.innerHTML = `
+        <div class="sonuc">
+          <h3 style="margin:0 0 8px 0;">${k.baslik} ${k.pdf ? '<span class="pdf-badge">PDF</span>' : ''}</h3>
+          <p style="margin:4px 0;"><b>Yazar:</b> ${k.yazar}</p>
+          <p style="margin:4px 0;"><b>Raf:</b> ${k.raf || '-'}</p>
+          <p><b>Yükleyen:</b> ${k.sahipId ? `<a href="#" onclick="profilGoster(${k.sahipId}); return false;" style="color:#FFD700;cursor:pointer;text-decoration:underline;">${k.sahipAd || '-'}</a>` : (k.sahipAd || '-')}</p>
+          <p style="margin:4px 0;"><b>Yükleme:</b> ${k.yuklenmeTarihi || '-'}</p>
+          ${k.pdf ? `
+            <div class="button-group" style="margin-top:16px;">
+              <button onclick="pdfAc('${k.qr}')">PDF Aç</button>
+              <button class="btn-secondary" onclick="pdfIndir('${k.qr}')">PDF İndir</button>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    } else {
+      alan.innerHTML = '<div class="bos">Bu QR kod kayıtlı değil</div>';
+    }
+  };
+}
+
+// RASTGELE
+function rastgeleKitap() {
+  const tx = db.transaction("kitaplar", "readonly");
+  const istek = tx.objectStore("kitaplar").getAll();
+  istek.onsuccess = function() {
+    const kitaplar = istek.result;
+    const alan = document.getElementById('rastgele-sonuc');
+    if (kitaplar.length === 0) {
+      alan.innerHTML = '<div class="bos">Önce kitap ekle</div>';
+      return;
+    }
+    const k = kitaplar[Math.floor(Math.random() * kitaplar.length)];
+    alan.innerHTML = `
+      <div class="sonuc">
+        <h3 style="margin:0 0 8px 0;">${k.baslik} ${k.pdf ? '<span class="pdf-badge">PDF</span>' : ''}</h3>
+        <p style="margin:4px 0;"><b>Yazar:</b> ${k.yazar}</p>
+        <p style="margin:4px 0;"><b>Raf:</b> ${k.raf || '-'}</p>
+        <p style="margin:4px 0;"><b>Yükleyen:</b> ${k.sahipAd || '-'}</p>
+        ${k.pdf ? `
+          <div class="button-group" style="margin-top:16px;">
+            <button onclick="pdfAc('${k.qr}')">PDF Aç</button>
+            <button class="btn-secondary" onclick="pdfIndir('${k.qr}')">PDF İndir</button>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  };
+}
+
+// YEDEK
+function otomatikYedekAl() {
+  if (!db) return;
+  const tx = db.transaction("kitaplar", "readonly");
+  const istek = tx.objectStore("kitaplar").getAll();
+  istek.onsuccess = function() {
+    const kitaplar = istek.result.map(k => { const { pdf, ...kopya } = k; return kopya; });
+    localStorage.setItem("kutuphane_yedek", JSON.stringify(kitaplar));
+    localStorage.setItem("kutuphane_son_yedek", new Date().toISOString());
+    yedekDurumunuGuncelle();
+  };
+}
+
+function yedekDurumunuGuncelle() {
+  const alan = document.getElementById('yedek-durum');
+  if (!alan || !db) return;
+  const tx = db.transaction("kitaplar", "readonly");
+  const istek = tx.objectStore("kitaplar").getAll();
+  istek.onsuccess = function() {
+    const kitaplar = istek.result;
+    const pdfSayisi = kitaplar.filter(k => k.pdf).length;
+    const sonYedek = localStorage.getItem("kutuphane_son_yedek");
+    let yedekMetin = 'Henüz yedek yok';
+    if (sonYedek) {
+      const tarih = new Date(sonYedek);
+      yedekMetin = tarih.toLocaleString('tr-TR');
+    }
+    alan.innerHTML = `<b>${kitaplar.length} kitap</b> (${pdfSayisi} PDF)<br><small>Son yedek: ${yedekMetin}</small>`;
+  };
+}
+
+function kontrolVeGeriYukle() {
+  if (!db) return;
+  const tx = db.transaction("kitaplar", "readonly");
+  const istek = tx.objectStore("kitaplar").getAll();
+  istek.onsuccess = function() {
+    if (istek.result.length === 0) {
+      const yedek = localStorage.getItem("kutuphane_yedek");
+      if (yedek) {
+        try {
+          const kitaplar = JSON.parse(yedek);
+          if (kitaplar.length > 0) {
+            if (confirm('Otomatik yedek bulundu!\n\n' + kitaplar.length + ' kitabı geri yüklemek ister misin?')) {
+              topluYukle(kitaplar);
+            }
+          }
+        } catch(e) {}
+      }
+    }
+    listeyiGuncelle();
+    yedekDurumunuGuncelle();
+  };
+}
+
+function disaAktar() {
+  if (!db) return;
+  const tx = db.transaction("kitaplar", "readonly");
+  const istek = tx.objectStore("kitaplar").getAll();
+  istek.onsuccess = function() {
+    const kitaplar = istek.result.map(k => { const { pdf, ...kopya } = k; return kopya; });
+    if (kitaplar.length === 0) { alert('Yedek alınacak kitap yok!'); return; }
+    const veri = { versiyon: "4.0", tarih: new Date().toISOString(), kitapSayisi: kitaplar.length, kitaplar };
+    const json = JSON.stringify(veri, null, 2);
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'kutuphane_yedek_' + new Date().toISOString().slice(0,10) + '.json';
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    document.getElementById('yedek-sonuc').innerHTML = '<div class="sonuc">Yedek indirildi!</div>';
+    setTimeout(() => document.getElementById('yedek-sonuc').innerHTML = '', 2000);
+  };
+}
+
+function iceAktar() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json,application/json';
+  input.onchange = function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      try {
+        const veri = JSON.parse(ev.target.result);
+        if (!veri.kitaplar || !Array.isArray(veri.kitaplar)) { alert('Geçersiz yedek dosyası!'); return; }
+        const secim = confirm(veri.kitaplar.length + ' kitap bulundu.\n\nTAMAM = Mevcutları sil, yedekten yükle\nİPTAL = Üzerine ekle');
+        if (secim) {
+          const tx = db.transaction("kitaplar", "readwrite");
+          tx.objectStore("kitaplar").clear();
+          tx.oncomplete = function() { topluYukle(veri.kitaplar); };
+        } else {
+          topluYukle(veri.kitaplar);
+        }
+      } catch (err) { alert('Dosya okunamadı: ' + err.message); }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+function tamYedekAl() {
+  const tx = db.transaction(["kitaplar","kullanicilar","yorumlar","puanlar"], "readonly");
+  const kI = tx.objectStore("kitaplar").getAll();
+  const uI = tx.objectStore("kullanicilar").getAll();
+  const yI = tx.objectStore("yorumlar").getAll();
+  const pI = tx.objectStore("puanlar").getAll();
+  kI.onsuccess = function() {
+    uI.onsuccess = function() {
+      yI.onsuccess = function() {
+        pI.onsuccess = function() {
+          const kitaplar = kI.result.map(k => { const {pdf, ...c} = k; return c; });
+          const veri = { versiyon:"5.0", tarih:new Date().toISOString(), kitaplar, kullanicilar:uI.result, yorumlar:yI.result, puanlar:pI.result };
+          const blob = new Blob([JSON.stringify(veri,null,2)], {type:"application/json"});
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'kutuphane_TAM_yedek_' + new Date().toISOString().slice(0,10) + '.json';
+          document.body.appendChild(a); a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          document.getElementById('yedek-sonuc').innerHTML = '<div class="sonuc">Tam yedek indirildi! (PDF\'ler hariç)</div>';
+          setTimeout(() => document.getElementById('yedek-sonuc').innerHTML = '', 3000);
+        };
+      };
+    };
+  };
+}
+
+function tamYedekYukle() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json,application/json';
+  input.onchange = function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      try {
+        const veri = JSON.parse(ev.target.result);
+        if (!veri.kullanicilar || !veri.kitaplar) {
+          alert('Geçersiz tam yedek dosyası!');
+          return;
+        }
+        if (!confirm(' DİKKAT!\n\nBu cihazdaki TÜM hesaplar, kitaplar, yorumlar ve puanlar SİLİNECEK ve yedekten yüklenecek.\n\nDevam?')) return;
+        const tx = db.transaction(["kitaplar","kullanicilar","yorumlar","puanlar"], "readwrite");
+        tx.objectStore("kitaplar").clear();
+        tx.objectStore("kullanicilar").clear();
+        tx.objectStore("yorumlar").clear();
+        tx.objectStore("puanlar").clear();
+        tx.oncomplete = function() {
+          const tx2 = db.transaction(["kitaplar","kullanicilar","yorumlar","puanlar"], "readwrite");
+          veri.kitaplar.forEach(k => tx2.objectStore("kitaplar").add(k));
+          veri.kullanicilar.forEach(k => tx2.objectStore("kullanicilar").add(k));
+          veri.yorumlar.forEach(y => tx2.objectStore("yorumlar").add(y));
+          veri.puanlar.forEach(p => tx2.objectStore("puanlar").add(p));
+          tx2.oncomplete = function() {
+            alert(' Tam yedek yüklendi! Sayfa yenilenecek.');
+            location.reload();
+          };
+        };
+      } catch(err) {
+        alert('Dosya okunamadı: ' + err.message);
+      }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+function topluYukle(kitaplar) {
+  const tx = db.transaction("kitaplar", "readwrite");
+  const store = tx.objectStore("kitaplar");
+  let sayac = 0;
+  kitaplar.forEach(k => {
+    store.add({ 
+      baslik: k.baslik, yazar: k.yazar, raf: k.raf || '', 
+      qr: k.qr || "KITAP-" + Date.now() + Math.random(),
+      pdf: null, pdfSifre: null,
+      sahipId: aktifKullanici ? aktifKullanici.id : 0,
+      sahipAd: aktifKullanici ? aktifKullanici.ad + ' ' + aktifKullanici.soyad : (k.sahipAd || 'Bilinmiyor'),
+      yuklenmeTarihi: k.yuklenmeTarihi || k.tarih || new Date().toLocaleString('tr-TR')
+    });
+    sayac++;
+  });
+  tx.oncomplete = function() {
+    document.getElementById('yedek-sonuc').innerHTML = '<div class="sonuc">' + sayac + ' kitap yüklendi!</div>';
+    setTimeout(() => document.getElementById('yedek-sonuc').innerHTML = '', 2000);
+    listeyiGuncelle();
+    otomatikYedekAl();
+  };
+}
+
+// ADMIN
+function sifreAl() { return localStorage.getItem("admin_sifre") || VARSAYILAN_ADMIN_SIFRE; }
+
+function adminGiris() {
+  const girilen = document.getElementById('admin-sifre').value;
+  const sonuc = document.getElementById('admin-giris-sonuc');
+  if (girilen === sifreAl()) {
+    adminModu = true;
+    document.getElementById('admin-giris').style.display = 'none';
+    document.getElementById('admin-icerik').style.display = 'block';
+    document.getElementById('admin-sifre').value = '';
+    sonuc.innerHTML = '';
+    adminKullaniciListesi();
+    adminKitapListesi();
+    listeyiGuncelle();
+  } else {
+    sonuc.innerHTML = '<div class="uyari">Yanlış şifre!</div>';
+    setTimeout(() => sonuc.innerHTML = '', 2000);
+  }
+}
+
+function adminCikis() {
+  adminModu = false;
+  document.getElementById('admin-giris').style.display = 'block';
+  document.getElementById('admin-icerik').style.display = 'none';
+  listeyiGuncelle();
+}
+
+function adminKullaniciListesi() {
+  const tx = db.transaction("kullanicilar", "readonly");
+  const istek = tx.objectStore("kullanicilar").getAll();
+  istek.onsuccess = function() {
+    const kullanicilar = istek.result;
+    const alan = document.getElementById('admin-kullanici-listesi');
+    if (kullanicilar.length === 0) {
+      alan.innerHTML = '<div class="bos">Henüz kullanıcı yok</div>';
+      return;
+    }
+    alan.innerHTML = kullanicilar.map(k => `
+      <div class="kullanici-kart">
+        <h4>${k.ad} ${k.soyad} (${k.kullaniciAdi})</h4>
+        <p><b>E-posta:</b> ${k.email || '-'}</p>
+        <p><b>Okul:</b> ${k.okul || '-'}</p>
+        <p><b>Sınıf:</b> ${k.sinif || '-'}</p>
+        <p><b>Okul No:</b> ${k.no || '-'}</p>
+        <p><b>Kayıt:</b> ${k.kayitTarihi}</p>
+        ${k.tanit ? `<p><b>Tanıtım:</b> ${k.tanit}</p>` : ''}
+        <div class="button-group">
+          <button class="btn-secondary" onclick="profilGoster(${k.id})">Profili Gör</button>
+          <button class="btn-danger" onclick="kullaniciSil(${k.id})">Kullanıcıyı Sil</button>
+        </div>
+      </div>
+    `).join('');
+  };
+}
+
+function kullaniciSil(id) {
+  if (!confirm('Bu kullanıcıyı silmek istediğine emin misin?')) return;
+  const tx = db.transaction("kullanicilar", "readwrite");
+  tx.objectStore("kullanicilar").delete(id);
+  tx.oncomplete = function() { adminKullaniciListesi(); };
+}
+
+function adminKitapListesi() {
+  const tx = db.transaction("kitaplar", "readonly");
+  const istek = tx.objectStore("kitaplar").getAll();
+  istek.onsuccess = function() {
+    const kitaplar = istek.result;
+    const alan = document.getElementById('admin-kitap-listesi');
+    if (kitaplar.length === 0) {
+      alan.innerHTML = '<div class="bos">Henüz kitap yok</div>';
+      return;
+    }
+    alan.innerHTML = kitaplar.map(k => `
+      <div class="kitap-kart">
+        <h3>${k.baslik} ${k.pdf ? '<span class="pdf-badge">PDF</span>' : ''}</h3>
+        <p><b>Yazar:</b> ${k.yazar}</p>
+        <p><b>Raf:</b> ${k.raf || '-'}</p>
+        <p><b>Yükleyen:</b> ${k.sahipAd || '-'}</p>
+        <p><b>Yükleme:</b> ${k.yuklenmeTarihi || '-'}</p>
+        <p><b>QR:</b> ${k.qr}</p>
+        ${k.pdfSifre ? '<p><b>🔒 Şifreli</b></p>' : ''}
+        <div class="button-group">
+          <button class="btn-secondary" onclick="kitapDuzenle(${k.id})">Düzenle</button>
+          <button class="btn-danger" onclick="kitapSil(${k.id})">Sil</button>
+        </div>
+      </div>
+    `).join('');
+  };
+}
+
+function sifreDegistir() {
+  const eski = document.getElementById('eski-sifre').value;
+  const yeni = document.getElementById('yeni-sifre').value;
+  const tekrar = document.getElementById('yeni-sifre-tekrar').value;
+  const sonuc = document.getElementById('sifre-sonuc');
+  if (eski !== sifreAl()) {
+    sonuc.innerHTML = '<div class="uyari">Mevcut şifre yanlış!</div>';
+    setTimeout(() => sonuc.innerHTML = '', 3000);
+    return;
+  }
+  if (yeni.length < 4) {
+    sonuc.innerHTML = '<div class="uyari">Yeni şifre en az 4 karakter olmalı!</div>';
+    setTimeout(() => sonuc.innerHTML = '', 3000);
+    return;
+  }
+  if (yeni !== tekrar) {
+    sonuc.innerHTML = '<div class="uyari">Yeni şifreler eşleşmiyor!</div>';
+    setTimeout(() => sonuc.innerHTML = '', 3000);
+    return;
+  }
+  localStorage.setItem("admin_sifre", yeni);
+  document.getElementById('eski-sifre').value = '';
+  document.getElementById('yeni-sifre').value = '';
+  document.getElementById('yeni-sifre-tekrar').value = '';
+  sonuc.innerHTML = '<div class="sonuc">Şifre değiştirildi!</div>';
+  setTimeout(() => sonuc.innerHTML = '', 3000);
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && document.activeElement.id === 'admin-sifre') adminGiris();
+  if (e.key === 'Enter' && document.activeElement.id === 'giris-sifre') girisYap();
+});
+</script>
+</body>
+</html>
