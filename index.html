@@ -1124,12 +1124,13 @@ function pdfAc(qr) {
   ist.onsuccess = function() {
     const k = ist.result;
     if (k && k.pdf) {
-      if (k.pdfSifre && (!aktifKullanici || (k.sahipId !== aktifKullanici.id && !adminModu))) {
-        const sifre = prompt('Bu PDF şifreli. Şifreyi gir:');
-        if (sifre !== k.pdfSifre) { alert('Yanlış şifre! PDF açılamaz.'); return; }
-      }
+      if (k.pdfSifre && (!aktifKullanici || (k.sahipId !== aktifKullanici.id && !adminModu))) { const sifre = prompt('Bu PDF şifreli. Şifreyi gir:'); if (sifre !== k.pdfSifre) { alert('Yanlış şifre! PDF açılamaz.'); return; } }
       const url = URL.createObjectURL(k.pdf);
       window.open(url, '_blank');
+    } else if (k) {
+      // PDF IndexedDB'de yok, GitHub'dan aç
+      const githubUrl = 'https://yukselridvanyagiz-cpu.github.io/kutuphane/pdf/' + qr + '.pdf';
+      window.open(githubUrl, '_blank');
     }
   };
 }
@@ -1141,16 +1142,18 @@ function pdfIndir(qr) {
   ist.onsuccess = function() {
     const k = ist.result;
     if (k && k.pdf) {
-      if (k.pdfSifre && (!aktifKullanici || (k.sahipId !== aktifKullanici.id && !adminModu))) {
-        const sifre = prompt('Bu PDF şifreli. Şifreyi gir:');
-        if (sifre !== k.pdfSifre) { alert('Yanlış şifre! PDF indirilemez.'); return; }
-      }
+      if (k.pdfSifre && (!aktifKullanici || (k.sahipId !== aktifKullanici.id && !adminModu))) { const sifre = prompt('Bu PDF şifreli. Şifreyi gir:'); if (sifre !== k.pdfSifre) { alert('Yanlış şifre! PDF indirilemez.'); return; } }
       const url = URL.createObjectURL(k.pdf);
-      const a = document.createElement('a');
-      a.href = url; a.download = k.baslik + '.pdf';
+      const a = document.createElement('a'); a.href = url; a.download = k.baslik + '.pdf';
       document.body.appendChild(a); a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+    } else if (k) {
+      // PDF IndexedDB'de yok, GitHub'dan indir
+      const githubUrl = 'https://yukselridvanyagiz-cpu.github.io/kutuphane/pdf/' + qr + '.pdf';
+      const a = document.createElement('a'); a.href = githubUrl; a.download = k.baslik + '.pdf';
+      document.body.appendChild(a); a.click();
+      document.body.removeChild(a);
     }
   };
 }
@@ -1188,12 +1191,13 @@ function kitapBul(qr) {
     const alan = document.getElementById('oku-sonuc');
     if (k) {
       if (k.pdf) {
-        // PDF varsa direkt aç
+        // PDF IndexedDB'de var, direkt aç
         pdfAc(k.qr);
         alan.innerHTML = `<div class="sonuc"><h3 style="margin:0 0 8px 0;">${k.baslik} <span class="pdf-badge">PDF</span></h3><p style="margin:4px 0;"><b>Yazar:</b> ${k.yazar}</p><p style="margin:4px 0;"><b>Raf:</b> ${k.raf || '-'}</p><p style="margin:4px 0;"><b>Yükleyen:</b> ${k.sahipAd || '-'}</p><p style="margin:4px 0;"><b>Yükleme:</b> ${k.yuklenmeTarihi || '-'}</p><div class="button-group" style="margin-top:16px;"><button onclick="pdfAc('${k.qr}')">PDF Aç</button><button class="btn-secondary" onclick="pdfIndir('${k.qr}')">PDF İndir</button></div></div>`;
       } else {
-        // PDF yoksa sadece bilgi göster
-        alan.innerHTML = `<div class="sonuc"><h3 style="margin:0 0 8px 0;">${k.baslik}</h3><p style="margin:4px 0;"><b>Yazar:</b> ${k.yazar}</p><p style="margin:4px 0;"><b>Raf:</b> ${k.raf || '-'}</p><p style="margin:4px 0;"><b>Yükleyen:</b> ${k.sahipAd || '-'}</p><p style="margin:4px 0;"><b>Yükleme:</b> ${k.yuklenmeTarihi || '-'}</p><p style="margin:8px 0;color:#d32f2f;"><b>⚠️ PDF dosyası bulunamadı</b></p></div>`;
+        // PDF IndexedDB'de yok, GitHub'dan aç
+        pdfAc(k.qr);
+        alan.innerHTML = `<div class="sonuc"><h3 style="margin:0 0 8px 0;">${k.baslik} <span class="pdf-badge">PDF</span></h3><p style="margin:4px 0;"><b>Yazar:</b> ${k.yazar}</p><p style="margin:4px 0;"><b>Raf:</b> ${k.raf || '-'}</p><p style="margin:4px 0;"><b>Yükleyen:</b> ${k.sahipAd || '-'}</p><p style="margin:4px 0;"><b>Yükleme:</b> ${k.yuklenmeTarihi || '-'}</p><p style="margin:8px 0;color:#888;"><small>PDF GitHub'dan açılıyor...</small></p><div class="button-group" style="margin-top:16px;"><button onclick="pdfAc('${k.qr}')">PDF Aç</button><button class="btn-secondary" onclick="pdfIndir('${k.qr}')">PDF İndir</button></div></div>`;
       }
     } else { alan.innerHTML = '<div class="bos">Bu QR kod kayıtlı değil</div>'; }
   };
