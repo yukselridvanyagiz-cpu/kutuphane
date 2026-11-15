@@ -1178,6 +1178,7 @@ function qrElGir() {
   if (!metin) { alert('QR metnini yapıştır!'); return; }
   kitapBul(metin);
 }
+
 function kitapBul(qr) {
   const tx = db.transaction("kitaplar", "readonly");
   const index = tx.objectStore("kitaplar").index("qr");
@@ -1186,24 +1187,15 @@ function kitapBul(qr) {
     const k = ist.result;
     const alan = document.getElementById('oku-sonuc');
     if (k) {
-      alan.innerHTML = `
-        <div class="sonuc">
-          <h3 style="margin:0 0 8px 0;">${k.baslik} ${k.pdf ? '<span class="pdf-badge">PDF</span>' : ''}</h3>
-          <p style="margin:4px 0;"><b>Yazar:</b> ${k.yazar}</p>
-          <p style="margin:4px 0;"><b>Raf:</b> ${k.raf || '-'}</p>
-          <p><b>Yükleyen:</b> ${k.sahipId ? `<a href="#" onclick="profilGoster(${k.sahipId}); return false;" style="color:#FFD700;cursor:pointer;text-decoration:underline;">${k.sahipAd || '-'}</a>` : (k.sahipAd || '-')}</p>
-          <p style="margin:4px 0;"><b>Yükleme:</b> ${k.yuklenmeTarihi || '-'}</p>
-          ${k.pdf ? `
-            <div class="button-group" style="margin-top:16px;">
-              <button onclick="pdfAc('${k.qr}')">PDF Aç</button>
-              <button class="btn-secondary" onclick="pdfIndir('${k.qr}')">PDF İndir</button>
-            </div>
-          ` : ''}
-        </div>
-      `;
-    } else {
-      alan.innerHTML = '<div class="bos">Bu QR kod kayıtlı değil</div>';
-    }
+      if (k.pdf) {
+        // PDF varsa direkt aç
+        pdfAc(k.qr);
+        alan.innerHTML = `<div class="sonuc"><h3 style="margin:0 0 8px 0;">${k.baslik} <span class="pdf-badge">PDF</span></h3><p style="margin:4px 0;"><b>Yazar:</b> ${k.yazar}</p><p style="margin:4px 0;"><b>Raf:</b> ${k.raf || '-'}</p><p style="margin:4px 0;"><b>Yükleyen:</b> ${k.sahipAd || '-'}</p><p style="margin:4px 0;"><b>Yükleme:</b> ${k.yuklenmeTarihi || '-'}</p><div class="button-group" style="margin-top:16px;"><button onclick="pdfAc('${k.qr}')">PDF Aç</button><button class="btn-secondary" onclick="pdfIndir('${k.qr}')">PDF İndir</button></div></div>`;
+      } else {
+        // PDF yoksa sadece bilgi göster
+        alan.innerHTML = `<div class="sonuc"><h3 style="margin:0 0 8px 0;">${k.baslik}</h3><p style="margin:4px 0;"><b>Yazar:</b> ${k.yazar}</p><p style="margin:4px 0;"><b>Raf:</b> ${k.raf || '-'}</p><p style="margin:4px 0;"><b>Yükleyen:</b> ${k.sahipAd || '-'}</p><p style="margin:4px 0;"><b>Yükleme:</b> ${k.yuklenmeTarihi || '-'}</p><p style="margin:8px 0;color:#d32f2f;"><b>⚠️ PDF dosyası bulunamadı</b></p></div>`;
+      }
+    } else { alan.innerHTML = '<div class="bos">Bu QR kod kayıtlı değil</div>'; }
   };
 }
 
